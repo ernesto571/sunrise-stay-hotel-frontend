@@ -3,7 +3,7 @@ import axiosLib from "axios";
 const axios = axiosLib.create({
   baseURL: import.meta.env.DEV
     ? "http://localhost:3001/api"
-    : "https://sunrise-stay-hotel-backend.onrender.com",
+    : "https://sunrise-stay-hotel-backend.onrender.com/api",
 });
 
 axios.interceptors.request.use(async (config) => {
