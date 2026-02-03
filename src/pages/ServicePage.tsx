@@ -62,7 +62,7 @@ function ServicePage (){
                         className={`grid grid-cols-1 md:flex gap-8 mt-9 w-[90%] lg:w-[80%] mx-auto ${
                             isOdd ? 'md:flex-row' : 'md:flex-row-reverse'
                         }`} >
-                            <div className=" relative justify h-[300px] w-full">
+                            <div className=" relative justify-center h-[300px] w-full">
                                 <img 
                                     src={s.img} 
                                     alt="" 
@@ -73,7 +73,7 @@ function ServicePage (){
                                 </div>                    
                             </div>
                             
-                            <span className="flex flex-col gap-y-2 col-span-2 font-[50] justify-center">
+                            <span className="flex flex-col gap-y-2  font-[50] justify-center">
                                 <h1 className="text-[#76be81] text-sm lg:text-base  ">{s.title}</h1>
                                 <h2 className="text-[#234c48]  lg:text-[1.2rem] ">
                                     {s.description}
