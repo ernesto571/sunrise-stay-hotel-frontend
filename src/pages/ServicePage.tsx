@@ -73,7 +73,7 @@ function ServicePage (){
                                 </div>                    
                             </div>
                             
-                            <span className="flex flex-col gap-y-2 col-span-2 font-[50] justify-center">
+                            <span className="flex flex-col gap-y-2 font-[50] justify-center">
                                 <h1 className="text-[#76be81] text-sm lg:text-base  ">{s.title}</h1>
                                 <h2 className="text-[#234c48]  lg:text-[1.2rem] ">
                                     {s.description}
