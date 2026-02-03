@@ -145,9 +145,9 @@ function RoomDetails() {
       </div>
 
       {/* Content */}
-      <div id="room-details" className="grid grid-cols-1  lg:grid-cols-3 w-[95%] md:w-[80%] mx-auto gap-[3rem] mt-[4rem] lg:mt-[8rem] mb-[4rem]">
+      <div id="room-details" className="grid grid-cols-1  lg:grid-cols-3 w-[95%] md:w-[80%] mx-auto gap-[3rem] mt-[4rem] lg:mt-[8rem] mb-[4rem] justify-center items-center">
         {/* left section */}
-        <section className="col-span-2">
+        <section className="lg:col-span-2">
           <div className="w-full h-[320px] lg:h-[380px]">
             <img
               src={room.image}
@@ -261,8 +261,8 @@ function RoomDetails() {
         </section>
 
         {/* RIGHT SECTION - BOOKING FORM */}
-        <section className="sticky top-4 h-fit">
-          <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
+        <section className="sticky top-4 h-fit ">
+          <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200 ">
             <div className="mb-6">
               <h2 className="text-[1.8rem] font-serif font-light text-[#1c1c1c]">
                 Book Your Stay
