@@ -1,8 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useHotelImageStore } from "../store/HotelImageStore";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -40,47 +37,44 @@ function Theme (){
     });
       
   }, [isMobile]);
-    const { images, fetchHotelImages } = useHotelImageStore();
-    const settings = {
-        dots: false,
-        infinite: true,
-        speed: 600,
-        slidesToShow: 4,
-        slidesToScroll: 3,
-        arrows: false,
-        autoplay: true,
-        autoplaySpeed: 3500,
-        swipeToSlide: true,
-        centerMode: false,
-        variableWidth: false,
-        responsive: [
-          {
-            breakpoint: 1024,
-            settings: {
-              slidesToShow: 3,
-              slidesToScroll: 2
-            }
-          },
-          {
-            breakpoint: 768,
-            settings: {
-              slidesToShow: 2,
-              slidesToScroll: 1
-            }
-          },
-          {
-            breakpoint: 480,
-            settings: {
-              slidesToShow: 1,
-              slidesToScroll: 1
-            }
-          }
-        ]
+  const { images, fetchHotelImages } = useHotelImageStore();
+
+  useEffect(() => {
+      fetchHotelImages();
+  }, []);
+
+  const [index, setIndex] = useState(0);
+
+  const [visibleCount, setVisibleCount] = useState(4);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 480) {
+        setVisibleCount(1);
+      } else if (window.innerWidth < 1024) {
+        setVisibleCount(3);
+      } else {
+        setVisibleCount(4);
+      }
     };
-    
-    useEffect(() => {
-        fetchHotelImages();
-    }, []);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const visibleImage = Array.from({ length: visibleCount }, (_, i) => {
+    const serviceIndex = (i + images.length) % images.length;
+    return images[serviceIndex];
+  });
+
+  const nextImage = () => {
+    setIndex(prev => (prev + 1) % images.length);
+  };
+
+  useEffect(() => {
+    const interval = setInterval(nextImage, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
 
     return(
@@ -89,8 +83,8 @@ function Theme (){
                 <p className="text-base lg:text-[1.2rem] text-[#76be81] text-center pb-4 pt-[3rem] tracking-wide">THROUGH OUR LENSES</p>
                 <h1 className="theme-title text-[2rem] md:text-[2.3rem] lg:text-[2.6rem] text-center font-lighter tracking-wide font-serif" >Sunrise-Stay Hotel</h1>
                 <div id="theme-pic" className="mt-[3rem]">
-                    <Slider {...settings}>
-                        {images.map((image) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 transition-transform duration-700 ease-in-out" >
+                        {visibleImage.map((image) => (
                         <div key={image.id} className=" w-[100%]">
                             <img
                             src={image.image_url}
@@ -98,7 +92,7 @@ function Theme (){
                             />
                         </div>
                         ))}
-                    </Slider>
+                    </div>
                 </div>
             </main>
         </section>

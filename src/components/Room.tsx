@@ -1,7 +1,4 @@
-import { useEffect } from "react";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
+import { useEffect, useState } from "react";
 import { useRoomTypeStore } from "../store/RoomTypeStore";
 import Loading from "./Loading";
 import { BedSingle, User } from "lucide-react";
@@ -40,15 +37,15 @@ function Room() {
       }
     });
 
-    // Animate the entire slider container instead of individual cards
-    gsap.from('.slider-container', {
+    // Animate the room cards
+    gsap.from('.room-card', {
       opacity: 0,
       y: 30,
-      duration: 0.8,
-      delay: 0.2,
+      duration: 0.6,
+      stagger: config.stagger,
       ease: "power2.out",
       scrollTrigger: {
-        trigger: '.slider-container',
+        trigger: '.grid-container',
         start: isMobile ? "top 90%" : "top 95%",
         toggleActions: 'play none none none',
       }
@@ -56,49 +53,57 @@ function Room() {
       
   }, [loading, isMobile]);
   
-  const settings = {
-    dots: false,
-    infinite: true,
-    speed: 600,
-    slidesToShow: 3.5,
-    slidesToScroll: 2,
-    arrows: false,
-    autoplay: true,
-    autoplaySpeed: 3500,
-    swipeToSlide: true,
-    centerMode: false,
-    variableWidth: false,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2.5,
-          slidesToScroll: 1
-        }
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 1.5,
-          slidesToScroll: 1
-        }
-      },
-      {
-        breakpoint: 480,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1
-        }
-      }
-    ]
-  };
-  
   useEffect(() => {
     fetchRoomTypes();
+  }, [fetchRoomTypes]);
+
+  const [index, setIndex] = useState(0);
+
+  const [visibleCount, setVisibleCount] = useState(3);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 450) {
+        setVisibleCount(1);
+      } else if (window.innerWidth < 1024) {
+        setVisibleCount(3);
+      } else {
+        setVisibleCount(3);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const CENTER_INDEX = Math.floor(visibleCount / 2);
+
+  const visibleRoom = Array.from({ length: visibleCount }, (_, i) => {
+    const serviceIndex = (index - CENTER_INDEX + i + roomTypes.length) % roomTypes.length;
+    return roomTypes[serviceIndex];
+  });
+
+  const nextRoom = () => {
+    setIndex(prev => (prev + 1) % roomTypes.length);
+  };
+
+  useEffect(() => {
+    const interval = setInterval(nextRoom, 5000);
+    return () => clearInterval(interval);
+  }, []);
+  
+  
 
   if (loading) {
     return <Loading />
+  }
+  
+  if (!roomTypes || roomTypes.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-500">No rooms available</p>
+      </div>
+    );
   }
   
   return (
@@ -110,37 +115,44 @@ function Room() {
             Reste's Exclusive Rooms & Suites
           </h1>
         </div>
-        <div className="slider-container mt-[3rem] w-full overflow-hidden">
-          <Slider {...settings}>
-            {roomTypes.map((room, i) => (
-              <div key={room.id} className="px-2 md:px-3">
-                <div className={`room-card bg-white rounded-b-[10px] ${i % 2 !== 0 ? "mt-7" : "mt-0"}`}>
-                  <div className="h-[220px] md:h-[250px] lg:h-[270px] rounded-lg relative transform transition duration-300">
-                    <img src={room.image} alt={room.name} className="w-full h-full object-cover rounded-t-[8px] transition-[filter,transform] duration-[400ms,300ms] ease-in-out hover:blur-[3px]"/>
-                    <div className="absolute top-2 md:top-3 lg:top-4 right-3 md:right-4 lg:right-5 z-20 bg-[#76be81] rounded-[10px]">
-                      <p className="text-white text-sm md:text-base lg:text-base p-2 lg:p-3 ">${room.price_per_night} / NIGHT</p>
+        <div className="overflow-hidden mt-[3rem] w-full">
+          <div 
+            className="grid-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 transition-transform duration-700 ease-in-out" >
+            {visibleRoom.map((room, i) => {
+              const isActive = i === CENTER_INDEX;
+              return (
+                <div 
+                  key={room.id} 
+                  className={` px-3 md:px-4 transition-all duration-700 ${isActive ? "translate-y-4" : ""} `} >
+                  <div className={`room-card bg-white rounded-b-[10px] transition-all duration-700  `}>
+                    <div className="h-[220px] md:h-[250px] lg:h-[270px] rounded-lg relative transform transition duration-300">
+                      <img src={room.image} alt={room.name} className="w-full h-full object-cover rounded-t-[8px] transition-[filter,transform] duration-[400ms,300ms] ease-in-out hover:blur-[3px]"/>
+                      <div className="absolute top-2 md:top-3 lg:top-4 right-3 md:right-4 lg:right-5 z-20 bg-[#76be81] rounded-[10px]">
+                        <p className="text-white text-sm md:text-base lg:text-base p-2 lg:p-3 ">${room.price_per_night} / NIGHT</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="mt-6 pb-6 w-[95%] md:w-[90%] lg:w-[90%] mx-auto">
-                    <span className="font-serif tracking-wide font-lighter">
-                      <p className="text-[#76be81] text-base lg:text-[1.2rem] pb-3">{room.name}</p>
-                      <Link to={`/rooms/${room.name}`} className="text-[#666666] text-[1.1rem] lg:text-[1.3rem] lg:whitespace-nowrap hover:text-[#76be81] hover:underline hover:cursor-pointer ease-in-out duration-300 transition-transform">{room.tagline}</Link>
-                    </span>
-                    <div className="flex gap-4 lg:gap-7 pt-4 text-sm lg:text-base">
-                      <span className="flex gap-2 text-[#666666] items-center">
-                        <BedSingle color="white" className="fill-[#666666]" />
-                        <p>{room.size_sqm} SQ.FT/Rooms</p>
+                    <div className="mt-6 pb-6 w-[95%] md:w-[90%] lg:w-[90%] mx-auto">
+                      <span className="font-serif tracking-wide font-lighter">
+                        <p className="text-[#76be81] text-base lg:text-[1.2rem] pb-3">{room.name}</p>
+                        <Link to={`/rooms/${room.name}`} className="text-[#666666] text-[1.1rem] lg:text-[1.3rem] lg:whitespace-nowrap hover:text-[#76be81] hover:underline hover:cursor-pointer ease-in-out duration-300 transition-transform">{room.tagline}</Link>
                       </span>
-                      <span className="text-[#666666] flex gap-2 items-center">
-                        <User className="fill-[#666666] text-[#666666]" />
-                        <p>0{room.max_adults + room.max_children} Guests</p>
-                      </span>
+                      <div className="flex gap-4 lg:gap-7 pt-4 text-sm lg:text-base">
+                        <span className="flex gap-2 text-[#666666] items-center">
+                          <BedSingle color="white" className="fill-[#666666]" />
+                          <p>{room.size_sqm} SQ.FT/Rooms</p>
+                        </span>
+                        <span className="text-[#666666] flex gap-2 items-center">
+                          <User className="fill-[#666666] text-[#666666]" />
+                          <p>0{room.max_adults + room.max_children} Guests</p>
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </Slider>
+              );
+            })}
+          </div>
+
         </div>
       </main>
     </section>
