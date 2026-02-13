@@ -29,7 +29,7 @@ function Room() {
       if (window.innerWidth < 450) {
         setVisibleCount(1);
       } else if (window.innerWidth < 1024) {
-        setVisibleCount(3);
+        setVisibleCount(2);
       } else {
         setVisibleCount(3);
       }
