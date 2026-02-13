@@ -63,7 +63,7 @@ function Theme (){
   }, []);
 
   const visibleImage = Array.from({ length: visibleCount }, (_, i) => {
-    const serviceIndex = (i + images.length) % images.length;
+    const serviceIndex = (index + i + images.length) % images.length;
     return images[serviceIndex];
   });
 
