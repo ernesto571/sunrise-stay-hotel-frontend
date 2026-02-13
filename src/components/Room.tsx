@@ -14,9 +14,44 @@ function Room() {
   const { roomTypes, fetchRoomTypes, loading } = useRoomTypeStore();
   
   const isMobile = useMediaQuery({ maxWidth: 768 })
+  
+  const [index, setIndex] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(3);
+
+  // Fetch room types first
+  useEffect(() => {
+    fetchRoomTypes();
+  }, [fetchRoomTypes]);
+
+  // Handle resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 450) {
+        setVisibleCount(1);
+      } else if (window.innerWidth < 1024) {
+        setVisibleCount(3);
+      } else {
+        setVisibleCount(3);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Auto-rotate only after roomTypes are loaded
+  useEffect(() => {
+    if (!roomTypes || roomTypes.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setIndex(prev => (prev + 1) % roomTypes.length);
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [roomTypes]);
     
   useGSAP(() => {
-    if (loading) return; // Don't animate while loading
+    if (loading || !roomTypes || roomTypes.length === 0) return;
 
     const config = {
       duration: 0.5,
@@ -37,7 +72,6 @@ function Room() {
       }
     });
 
-    // Animate the room cards
     gsap.from('.room-card', {
       opacity: 0,
       y: 30,
@@ -51,53 +85,14 @@ function Room() {
       }
     });
       
-  }, [loading, isMobile]);
-  
-  useEffect(() => {
-    fetchRoomTypes();
-  }, [fetchRoomTypes]);
+  }, [loading, isMobile, roomTypes]);
 
-  const [index, setIndex] = useState(0);
-
-  const [visibleCount, setVisibleCount] = useState(3);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 450) {
-        setVisibleCount(1);
-      } else if (window.innerWidth < 1024) {
-        setVisibleCount(3);
-      } else {
-        setVisibleCount(3);
-      }
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const CENTER_INDEX = Math.floor(visibleCount / 2);
-
-  const visibleRoom = Array.from({ length: visibleCount }, (_, i) => {
-    const serviceIndex = (index - CENTER_INDEX + i + roomTypes.length) % roomTypes.length;
-    return roomTypes[serviceIndex];
-  });
-
-  const nextRoom = () => {
-    setIndex(prev => (prev + 1) % roomTypes.length);
-  };
-
-  useEffect(() => {
-    const interval = setInterval(nextRoom, 5000);
-    return () => clearInterval(interval);
-  }, []);
-  
-  
-
+  // Show loading state
   if (loading) {
     return <Loading />
   }
   
+  // Show empty state
   if (!roomTypes || roomTypes.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -105,6 +100,13 @@ function Room() {
       </div>
     );
   }
+
+  // Calculate visible rooms only after roomTypes are available
+  const CENTER_INDEX = Math.floor(visibleCount / 2);
+  const visibleRoom = Array.from({ length: visibleCount }, (_, i) => {
+    const serviceIndex = (index - CENTER_INDEX + i + roomTypes.length) % roomTypes.length;
+    return roomTypes[serviceIndex];
+  });
   
   return (
     <section className="mt-[5rem] lg:mt-[7rem] pb-[7rem] bg-[#f2fcf4]">
@@ -123,8 +125,8 @@ function Room() {
               return (
                 <div 
                   key={room.id} 
-                  className={` px-3 md:px-4 transition-all duration-700 ${isActive ? "translate-y-4" : ""} `} >
-                  <div className={`room-card bg-white rounded-b-[10px] transition-all duration-700  `}>
+                  className={`px-3 md:px-4 transition-all duration-700 ${isActive ? "translate-y-4" : ""}`} >
+                  <div className="room-card bg-white rounded-b-[10px] transition-all duration-700">
                     <div className="h-[220px] md:h-[250px] lg:h-[270px] rounded-lg relative transform transition duration-300">
                       <img src={room.image} alt={room.name} className="w-full h-full object-cover rounded-t-[8px] transition-[filter,transform] duration-[400ms,300ms] ease-in-out hover:blur-[3px]"/>
                       <div className="absolute top-2 md:top-3 lg:top-4 right-3 md:right-4 lg:right-5 z-20 bg-[#76be81] rounded-[10px]">
@@ -152,7 +154,6 @@ function Room() {
               );
             })}
           </div>
-
         </div>
       </main>
     </section>
